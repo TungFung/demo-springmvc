@@ -1,5 +1,8 @@
 package com.example.exception;
 
+/**
+ * 如果controller抛出这个异常，那么响应会有404状态码
+ */
 public class MyException extends RuntimeException {
 
     public MyException() {

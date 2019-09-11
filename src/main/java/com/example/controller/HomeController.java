@@ -5,8 +5,12 @@ import com.example.dto.ApplyDto;
 import com.example.dto.HomeDto;
 import com.example.dto.ResultDto;
 import com.example.exception.MyException;
+import com.example.exception.TestException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.LinkedMultiValueMap;
@@ -23,6 +27,15 @@ public class HomeController {
 
     private Logger log = LoggerFactory.getLogger(getClass());
 
+    @Autowired
+    private Environment env;
+
+    @Value("${app.name}")
+    private String appName;
+
+    @Value("#{systemProperties['os.name']}")
+    private String osName;
+
     /**
      * http://localhost:8080/home/greet
      * {"content":"welcome home"}
@@ -31,7 +44,9 @@ public class HomeController {
      */
     @GetMapping("/greet")
     public HomeDto greet(){
-        return new HomeDto("welcome home");
+        log.info("app.name:{}, app.version:{}", env.getProperty("app.name"), env.getProperty("app.version"));
+
+        return new HomeDto("welcome to: " + appName + " ,os: " + osName);
     }
 
     /**
@@ -104,12 +119,24 @@ public class HomeController {
         return new HomeDto("hello ni hao");
     }
 
+    @GetMapping("/find2/{id}")
+    public HomeDto find2(@PathVariable("id") Long id){
+        if(9999L == id){
+            throw new TestException();//这里抛出了异常
+        }
+        return new HomeDto("hello ni hao");
+    }
+
     /**
-     * 捕获Controller抛出的MyException异常,处理后返回给客户端信息，
-     * 客户端会看到 info not found 的信息
+     * 捕获该Controller抛出的MyException异常,处理后返回给客户端信息，
+     * 客户端会看到 info not found 的信息, 这里如果返回的是200的码
+     * 如果返回的是406-NOT_FOUND,那么看不到info not found的信息的
+     *
+     * 如果想要对所有的Controller的异常捕获，应该使用@ControllerAdvice定义
+     * 一个类（标注了ControllerAdvice也算bean），在里面统一处理异常
      */
     @ExceptionHandler(MyException.class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ResponseStatus(value = HttpStatus.NOT_FOUND, reason = "resource not found")
     public String handleMyException(MyException e){
         log.warn("exception info:", e);
         return "info not found";
