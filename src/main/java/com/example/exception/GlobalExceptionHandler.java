@@ -7,6 +7,9 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+/**
+ * 所有Controller抛出的异常这里都能收到，并通过ExceptionHandler处理
+ */
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -14,9 +17,8 @@ public class GlobalExceptionHandler {
 
     /**
      * 这里只能返回String -- 值为逻辑视图名（全局错误视图） 但这种方式前后分离的设计中不会用了
-     * 返回Long -- 没搞懂能返回什么值
-     * 返回其他类型的值都是错的
-     * 不返回可以
+     * 通过ResponseBody返回DTO对象,前段看到的是200，看返回体中的JSON数据内容，里面有错误码，信息
+     * 不返回也可以
      */
     @ExceptionHandler(TestException.class)
     @ResponseBody
